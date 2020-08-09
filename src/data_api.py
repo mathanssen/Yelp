@@ -34,5 +34,4 @@ while offset <= 950:
         businesses += rest['list']
     offset = offset + 50
     
-cf.save_obj(businesses, 'businesses', '')
-
+cf.save_obj(businesses, 'businesses_api', '..\\references\\')
