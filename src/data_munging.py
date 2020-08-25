@@ -4,7 +4,11 @@ from sklearn.cluster import DBSCAN
 import pandas as pd
 import re
 
+
+# Paths
 path_references = '..\\references\\'
+
+# Imports
 list_businesses = cf.load_obj('businesses_updated', path_references)
 
 # Convert list to dataframe
@@ -49,8 +53,8 @@ for i in range(0, len(df_businesses)):
         df_businesses['time_opened2'][i] = list_time[0]
         df_businesses['time_closed2'][i] = list_time[1]
 
-for col in ['time_opened', 'time_opened2', 'time_closed', 'time_closed2']:
-    df_businesses[col] = pd.to_datetime(df_businesses[col],format='%I:%M%p')
+#for col in ['time_opened', 'time_opened2', 'time_closed', 'time_closed2']:
+#    df_businesses[col] = pd.to_datetime(df_businesses[col],format='%I:%M%p')
 
 # Clusterization of the coordinates
 coords = df_businesses[['coordinates.latitude', 'coordinates.longitude']].values
@@ -59,3 +63,24 @@ epsilon = 0.1 / kms_per_radian
 db = DBSCAN(eps=epsilon, min_samples=1, algorithm='ball_tree', metric='haversine').fit(np.radians(coords))
 cluster_labels = db.labels_
 df_businesses['region'] = cluster_labels.tolist()
+
+# Price column convertion
+df_businesses = df_businesses.rename(columns = { 'price' : 'price_str' })
+df_businesses['price'] = df_businesses['price_str'].str.len()
+
+# Filters
+c1 = df_businesses['price'].notna()
+c2 = df_businesses['delivery'] == 'yes'
+df_businesses = df_businesses[c1 & c2]
+
+# Quantity by region
+df_quantity = df_businesses.drop_duplicates(subset='id')
+df_quantity = df_quantity.groupby('region').id.nunique().reset_index()
+df_quantity = df_quantity.rename(columns = {'id':'quantity'})
+df_businesses = df_businesses.merge(df_quantity,
+                                    left_on='region',
+                                    right_on='region',
+                                    how='left')
+
+
+

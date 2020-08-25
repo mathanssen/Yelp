@@ -3,6 +3,7 @@ import json
 import custom_func as cf
 from passwords import api_key
 
+
 headers = {'Authorization': 'Bearer %s' % api_key}
 location = 'Toronto'
 
